@@ -1,3 +1,3 @@
-# MBAexamples
+# MBA materials
 
-Examples for Modern Business Analytics.  Everything copyright Matt Taddy 2017.
+Examples and lectures for Modern Business Analytics.  Everything copyright Matt Taddy 2017.
