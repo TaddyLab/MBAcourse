@@ -1,0 +1,183 @@
+\documentclass[12pt]{article}
+\usepackage{amssymb,amsmath,natbib,graphicx,amsthm,
+  setspace,sectsty,anysize,times,dsfont,enumerate}
+
+\usepackage[svgnames]{xcolor}
+
+\usepackage{lscape,arydshln,relsize,rotating}
+\usepackage[small]{caption}
+
+\newtheorem{prop}{\sc Proposition}[section]
+\renewcommand{\qedsymbol}{}
+
+%\marginsize{1.2in}{1in}{.3in}{1.4in}
+\setstretch{1.5}
+
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mr}[1]{\mathrm{#1}}
+\newcommand{\bm}[1]{\mathbf{#1}}
+\newcommand{\ds}[1]{\mathds{#1}}
+\newcommand{\indep}{\perp\!\!\!\perp}
+\DeclareMathOperator*{\argmin}{argmin}
+\newcommand{\norm}[1]{|\!|#1|\!|_{1}}
+\newcommand{\code}[1]{{\smaller\sf#1}}
+\newcommand{\e}[1]{{\footnotesize$\times10$}{$^{#1}$}}
+
+\sectionfont{\noindent\normalfont\large\bf}
+\subsectionfont{\noindent\normalfont\normalsize\sc}
+\subsubsectionfont{\noindent\normalfont\it}
+
+\setstretch{1.1}
+
+\begin{document}
+\pagestyle{empty} 
+
+
+{\bf   \huge \noindent
+2014 Booth Data Mining Midterm }
+
+\bigskip
+\begin{itemize}
+\item {\color{Maroon} This is an {\bf INDIVIDUAL} exam: you must work alone.}
+\item {\color{Maroon} The exam must be submitted on chalk before {\bf 8am on Monday May 5}}. \\ This deadline is the same for all sections.  You should submit a pdf document on chalk.
+\item Questions are ordered by class subject, not by difficulty.  Each sub-question (i.e., {A.B}) is worth the same amount.
+\item The exam is not easy!   And it is long.  {\it You may still do fine even if you cannot finish, but you will want to start early.} 
+\item Coding questions should be asked on Piazza, but you must not give away any answers when you formulate your query. We will only answer questions on R coding -- not statistics concepts.  
+We will continue to answer conceptual questions if they pertain to homework solutions or lecture examples.
+\item You will be graded on your written answers and analysis.  Please include and refer to plots to illustrate your answers.  
+\item Do not hand in detailed code, but do submit meaningful R output to help us understand your answer (e.g., printed $\hat\beta$ values, etc).
+\item Please be very clear: your answers need to be concise, precise, and easy to understand. \\ Neatness in presentation is expected.
+\end{itemize}
+
+\medskip
+
+\noindent
+{\bf Data and code are on the course site in 
+	{\tt midterm.zip}.}  
+	This includes {\tt yelp\_start.R}; use this script as a starting point for your answers.  The code can take a bit to run.  It might be worth running once and saving so that you can quickly start from scratch.  {\color{Maroon} Much of the code you will need has already been written for you in this script.}
+
+
+\medskip\noindent
+The data are three tables and two name lists.  They describe
+8029 Yelp reviews for businesses in Phoenix AZ written from Sept-Dec 2012. The starter script shows how to read the data into R and build associated (sparse) model matrices.
+
+\medskip\noindent
+{\tt ReviewStats.csv} is a simple table containing, for each review, its 1-5 star rating ({\tt stars}), the number of words in the review ({\tt nwrd}), and the number of total existing yelp reviews by the author ({\tt nrev}).
+
+\medskip\noindent
+{\tt WordFreq.csv} is a simple triplet matrix of word counts from review text, with {\tt i} the review (row of {\tt ReviewStats.csv}) and {\tt j} the word index in our list {\tt words.txt}.  
+
+\medskip\noindent
+{\tt BizType.csv} is a simple triplet matrix of business type for each review, with {\tt i} the review (row of {\tt ReviewStats.csv}) and {\tt j} the index from our list {\tt categories.txt}.  Note that this is a business supplied, non-exclusive taxonomy.
+
+
+\newpage
+\section{Significance and False Discovery}
+
+In the starter script, I've extracted a set of p-values
+from (independent) {\it marginal regression}  of review {\tt stars} on  presence  in review text for each of  5000 words.  That is, we fit
+\[
+{\tt stars}_i = \alpha + \beta_j \ds{1}{[x_{ji}>0]} + \epsilon_{ji}
+\]
+for each term $j$ with count $x_{ji}$ in review $i$, and return the p-value associated with a test of $\beta_{j}\neq0$. We'll use these 5000 independent regressions to screen words.
+
+\subsection{} Plot the p-values and comment on their distribution.
+
+\subsection{} What is the p-value rejection region associated with a 1\% False Discovery Rate?  \\How many p-values are in this rejection region?
+
+\subsection{} Suppose you just select the words with the 250 smallest p-values as significant.\\ How many of these do you expect are false discoveries?
+
+\vskip 1in
+\noindent{\large \bf Data for rest of exam}
+
+\bigskip
+\noindent We now consider only words associated with the 250 smallest p-values from [1].  The {\it counts} for these words are combined in our design matrix `{\tt x}' with {\tt Biz}, the model matrix for business category membership, and {\tt nwrd*Biz}, the interaction of business category and review length.  
+
+\medskip 
+\noindent For the remaining questions, you'll look at models to predict {\tt stars}.
+
+\newpage
+\section{Least-Squares and Bootstrapping}
+
+For this question you will fit a lasso path of Gaussian regressions for {\tt stars} onto {\tt x}.  We will focus on the AICc selected slice of $\bs{\hat\beta}$ along this path. 
+
+\subsection{} 
+What are the in-sample SSE and $R^2$ for this regression?
+
+\subsection{}
+Describe what ratings we'd expect for {\tt Bowling} businesses and {\tt Airports}.
+
+\subsection{}
+The starter script has code to bootstrap sampling distribution for the number the of parameters (degrees of freedom) selected by AICc in this regression. 
+\begin{itemize}
+\item What is the standard error for selected $df$? 
+\item What is a 95\% CI (just use $\pm 2$SE) for $df$? 
+\end{itemize}
+
+
+
+
+\newpage
+\section{Model Choice and Logistic Regression}
+
+Define a `bad review' as one with fewer than 4 stars.  We'll regress this binary outcome on {\tt x}.  
+
+\subsection{} Use {\tt cv.gamlr} to fit a cross-validated lasso 
+regularization path for this regression.  \\Plot the in-sample fit.
+
+\subsection{} Describe the criteria used to choose models under {\tt select="1se"} and {\tt select="min"} rules.  What are estimated out-of-sample $R^2$ for models fit using these $\lambda$?
+
+\subsection{} Compare AICc, AIC, and BIC selection to each other and to the CV rules.  Print the top ten best and worst review words under your preferred IC selection rule.  Do the results make sense?
+
+\subsection{}  {\it Long story, short question.}  Your startup idea is to use this yelp model to predict bad reviews on social media (e.g., facebook) that does not include a {\tt star} ranking.  The idea is that you'll alert proprietors to bad reviews, and they can respond to the author.  
+
+\medskip \noindent 
+Your business plan envisions healthy profits from charging your clients a flat subscription fee. There are downside risks to your business model, however. Failing to alert a proprietor to a bad review costs on average \$190 in lost business.  False alarms (telling them a review is bad when it's not) cost \$10 each.  Correctly alerting or correctly not-alerting have each a cost of zero (people only notice when you screw up).
+
+\medskip
+\noindent Say $p$ is the probability that a review is bad.  The exected cost of alerting is then $10(1-p)$, and cost of not alerting is $190p$, so that you'll alert at $p > 1/20$.
+\begin{itemize}
+\item What proportion of true bad reviews will you alert to at this cutoff?
+\item What will be your false alarm rate at this cutoff?
+\item What are the names we learned in class for the above two rates?
+\end{itemize}
+ 
+\newpage
+\section{Treatment Effects Estimation}
+
+Some academic psychologist has a theory that with more reviews the users become tougher raters.  We'll now try to measure this effect, while controlling for business type and review content.  That is, we want to see if users with higher {\tt nrev} give more {\tt bad} reviews even with the same review content.
+
+\subsection{} Our treatment variable will be $d=\log({\tt nrev})$. Justify this transformation.\\How can we interpret the coefficient on this treatment variable?
+
+\subsection{}  Predict $d$ from {\tt x}, and describe how the fit is relevant for causal inference here (assuming {\tt x} contains all relevant confounders).
+
+\subsection{} Obtain a causal estimate for treatment effect of {\tt nrev} on odds of a bad review, and describe this estimate in plain words. 
+
+\subsection{} Compare the estimate from 4.3 to the marginal (no controls) relationship between $d$ and {\tt y}.
+
+\newpage
+\section{Multinomial Regression}
+
+Now, we'll consider {\tt stars} as an unordered 5-level factor.  Use the code in your starter script to run a multinomial logistic regression.
+\subsection{} What is the change in odds of 1 vs 2-3 stars for an extra count of word {\tt crap} in the review? 
+\subsection{} What are the changes in odds of 1 star vs 2 and 1 star vs 5 star ratings for an extra count of word {\tt fantastic} in the review?
+
+\medskip
+\section*{Bonus}
+
+{\sc Use a MAXIMUM of one page, including plots, to answer.}
+
+\medskip \noindent
+Provide  additional analysis of the data.  Bonus will handed out only for insightful use of data mining tools, not for scattershot application of techniques.
+
+\medskip \noindent
+Do not spend too much (or any!) effort here: it is worth little.  
+
+
+
+
+
+
+
+\end{document}
