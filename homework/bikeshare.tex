@@ -1,0 +1,144 @@
+\documentclass[12pt]{article}
+\usepackage{amssymb,amsmath,natbib,graphicx,amsthm,
+  setspace,sectsty,anysize,times,dsfont,enumerate}
+
+\usepackage[svgnames]{xcolor}
+
+\usepackage{lscape,arydshln,relsize,rotating}
+\usepackage[small]{caption}
+
+\newtheorem{prop}{\sc Proposition}[section]
+\renewcommand{\qedsymbol}{}
+
+%\marginsize{1.2in}{1in}{.3in}{1.4in}
+
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mr}[1]{\mathrm{#1}}
+\newcommand{\bm}[1]{\mathbf{#1}}
+\newcommand{\ds}[1]{\mathds{#1}}
+\newcommand{\indep}{\perp\!\!\!\perp}
+\DeclareMathOperator*{\argmin}{argmin}
+\newcommand{\norm}[1]{|\!|#1|\!|_{1}}
+\newcommand{\code}[1]{{\smaller\sf#1}}
+\newcommand{\e}[1]{{\footnotesize$\times10$}{$^{#1}$}}
+
+\sectionfont{\noindent\normalfont\large\bf}
+\subsectionfont{\noindent\normalfont\normalsize\sc}
+\subsubsectionfont{\noindent\normalfont\it}
+
+\setstretch{1.1}
+
+\begin{document}
+\pagestyle{empty} 
+
+
+\noindent{\large \bf Washington DC Bikeshare Data}
+
+\bigskip
+
+\noindent
+Data and code are on the course site. 
+	This includes {\tt bikeshare\_start.R}; 
+	much of the code you will need has already been written for you in this script.
+
+
+\medskip\noindent
+The data are 17379 observations of hourly counts from 2011 to 2012 for bike rides (rentals)  from the Capital Bikeshare system in Washington DC. It was originally compiled by Fanaee and Gama in `Event labeling combining ensemble detectors and background knowledge' (2013).
+
+\bigskip\noindent
+\setstretch{.7}
+{\tt bikeshare.csv} contains:
+\begin{itemize}
+\item \texttt{season}: 1:spring, 2:summer, 3:fall, 4:winter
+\item \texttt{yr}: year (0:2011, 1:2012)
+\item \texttt{mnth}: month (1 to 12)
+\item \texttt{hr}: hour (0 to 23)
+\item \texttt{holiday}: whether day is holiday or not
+\item \texttt{weekday}: day of the week, counting from 0:sunday.
+\item \texttt{notbizday}: if day is either weekend or holiday is 1, otherwise is 0.
+\item \texttt{weathersit}: 
+\begin{enumerate} 
+\item Clear, Few clouds, Partly cloudy, Partly cloudy
+\item Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist
+\item Light Snow, Thunderstorm + Scattered clouds, Light Rain + Scattered clouds
+\item Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog
+\end{enumerate}
+\item \texttt{temp} Temperature, measured in standard deviations from average. 
+\item \texttt{hum}: Humidity, measured in standard deviations from average.
+\item \texttt{windspeed}: Wind speed, measured in standard deviations from average.
+\item \texttt{dteday}: date
+\item \texttt{cnt}: count of total rental bikes
+\end{itemize}
+We will consider \texttt{cnt} (and transformations thereof) as the response of interest.
+
+\setstretch{1.1}
+
+\newpage
+\section{Models, Outliers, and False Discovery}
+
+\bigskip
+I've aggregated the data to {\it daily} counts and run the simple regression \texttt{daylm}.
+
+\subsection{}
+What are the in-sample SSE and $R^2$ for this regression?
+
+\subsection{}
+Write out the mathematical formula for \texttt{daylm} and describe it in words.  Make sure to describe the probability model that is implied by the deviance we've minimized.  Do you have any criticisms of this model?
+
+\subsection{} 
+A standardized residual for response $y$ and prediction $\hat y$ is $r_i= (y_i-\hat y_i)/\hat\sigma$, where $\hat\sigma$ is the estimated standard deviation of residuals $y-\hat y$.  Calculate the standardized residuals for \texttt{daylm}.
+
+\medskip \noindent
+Now, we'll call the {\it outlier p-value} $2\times \mr{p}(Z < -|r_i|)$ where $Z \sim \mr{N}(0,1)$.  In R, this is \verb!2*pnorm(-abs(std_resids))!. 
+Calculate these {\it p-values}.  Describe what null hypothesis distribution they correspond to and why small values indicate a possible {\it outlier} day.
+
+\subsection{} What is the p-value rejection region associated with a 5\% False Discovery Rate here?  \\Which observations (days) are in this rejection region?  Do you have any explanation for them?
+
+\subsection{} Plot the p-value distribution.  What does it tell you about the
+assumptions of the probability model we used for our regression?
+
+
+\newpage
+\section{Lasso Linear Regression and Model Selection}
+
+For this question, consider the {\tt cv.gamlr} object I've fit as  {\tt fitlin}.
+
+\subsection{}
+What is our response variable?  Describe the columns of our model matrix.  How has this model addressed the `outlier detection' of question 1?
+
+\subsection{} Describe the criteria used to choose models under {\tt select="1se"} and {\tt select="min"} rules.  What are estimated out-of-sample $R^2$ for models fit using these $\lambda$?
+
+\subsection{} Compare AICc, AIC, and BIC selection to each other and to the CV rules. 
+
+\subsection{} Print the top three {\tt dteday} effects by absolute value under your preferred selection rule, and describe the implied effect on \texttt{cnt}. Can you explain any of these?
+
+\newpage
+\section{Logistic Regression and Classification}
+
+The managers of Capital Bikeshare have found that the system works smoothly until more than 500 bikes are rented in any one hour.  At that point, it becomes necessary to insert extra bikes into the system and move them across stations to balance loads.
+
+\subsection{}
+Define the binary outcome variable {\tt overload} that is one if \texttt{cnt} $>500$, zero otherwise.  Fit and plot the lasso path for regression of {\tt overload} onto the same model matrix used in Question 2 (no need for cross validation). 
+
+\subsection{} Summarize how hour-of-day effects the probability of an overload during business days.
+Consider a single hour with a strong effect and compare this to its effect in the regression of Q2. 
+
+\subsection{} Suppose that it costs you \$200/hr in overtime pay if you have an overload (\texttt{cnt} $>500$) with your usual number of staff.  Staffing an extra driver to move the bikes costs only \$100/hr and means you don't have to pay any overtime.  At what probability for \texttt{overload} $>0$ will you want to staff an extra driver?  
+
+\subsection{} Plot and describe the ROC curve for your AICc-optimal regression from 3.1.  What is the sensitivity and specificity of your rule from 3.3 if applied with this regression?
+
+\subsection{} Now, take the \texttt{test} sample and
+\begin{itemize}
+\item fit the regression path excluding this sample (e.g., on \texttt{mmbike[-test,]}).
+\item use the AICc-optimal model from this path to predict for the test set.
+\item plot the `out-of-sample' ROC curve for these predictions.
+\end{itemize}
+Compare this curve to your ROC curve from 3.4 and describe what they imply about the quality of AICc selection for this regression.
+
+
+
+
+
+
+\end{document}
