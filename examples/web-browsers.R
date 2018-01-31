@@ -30,12 +30,13 @@ plot(xx, dnorm(xx, xbar, xbse), type="l", col="royalblue", lwd=1.5,
 	xlab="average total online spend", ylab="density")
 dev.off()
 
-B <- 1000
+B <- 10000
 mub <- c()
 for (b in 1:B){
 	samp_b = sample.int(nrow(browser), replace=TRUE)
 	mub <- c(mub, mean(browser$spend[samp_b]))
 }
+sd(mub)
 
 pdf("../book/graphics/web-spendboot.pdf", width=4, height=4)
 par(mai=c(.8,.8,.2,.2))
@@ -43,6 +44,37 @@ hist(mub, main="", xlab="average total online spend",
 	col=8, border="grey90", freq=FALSE)
 lines(xx, dnorm(xx, xbar, xbse), col="royalblue", lwd=1.5)
 dev.off()
+
+## parametric bootstrap
+xbar <- mean(browser$spend)
+sig2 <-  var(browser$spend)
+
+B <- 10000
+mus <- c()
+for(b in 1:B){
+  xsamp <- rnorm(1e4, xbar, sqrt(sig2))
+  mus <- c(mus, mean(xsamp))
+}
+sd(mus)
+sqrt(sig2/1e4)
+
+## estiamtion of variance
+smallsamp <- browser$spend[sample.int(nrow(browser),100)]
+s <- sd(smallsamp) # sample variance
+s
+sd(browser$spend)
+s/sd(browser$spend)
+
+eb <- c()
+for (b in 1:B){
+	sb <- sd(smallsamp[sample.int(100, replace=TRUE)]) 
+	eb <- c(eb, sb-s)
+}
+mean(eb)
+
+tvals <- quantile(eb, c(0.05, 0.95))
+
+sd(mub)
 
 summary( glm( log(spend) ~ broadband + anychildren, data=browser) )
 

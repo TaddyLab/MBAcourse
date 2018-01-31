@@ -3,8 +3,6 @@
 library(gamlr)
 
 ## Browsing History. 
-
-
 ## The table has three colums: [machine] id, site [id], [# of] visits
 web <- read.csv("browser-domains.csv")
 ## Read in the actual website names and relabel site factor
@@ -38,10 +36,8 @@ plot(spender) ## path plot
 
 # run a stepwise regression plot
 stepspend <- gamlr(xweb, log(yspend), verb=TRUE, gamma=Inf, lmr=.1)
-pdf("../book/graphics/browser-stepspend.pdf", width=4.5, height=4.5)
 par(mai=c(.9,.9,.1,.1))
 plot(stepspend, df=FALSE, select=FALSE) ## path plot
-dev.off()
 
 
 
