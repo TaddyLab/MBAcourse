@@ -20,6 +20,7 @@ xs <- sparse.model.matrix( ~ s-1, data=wber)
 xu <- sparse.model.matrix( ~ u-1, data=wber)
 xw <- sparse.model.matrix( ~ w-1, data=wber)
 controls <- cBind(xs, xu, xw, descr[wber$UPC,]) 
+dim(controls)
 
 # full data mle fit
 fullfit <- gamlr(x=cBind(lp=wber$lp,controls), y=log(wber$MOVE), lambda.start=0)
@@ -56,7 +57,7 @@ resids <- orthoPLTE( x=controls[ss,], d=wber$lp[ss], y=log(wber$MOVE)[ss], dreg=
 lpxu <- xu*wber$lp
 colnames(lpxu) <- paste("lp",colnames(lpxu),sep="")
 
-xhte <- cBind(1,xu,descr[wber$UPC,])
+xhte <- cBind(1,descr[wber$UPC,])
 colnames(xhte)[1] <- "(baseline)"
 d <- xhte*wber$lp
 colnames(d) <- paste("lp",colnames(d),sep=":")
@@ -65,6 +66,7 @@ rownames(oxhte) <- rownames(upc)
 
 # fullhte 
 fullhte <- gamlr(x=cBind(d,controls), y=log(wber$MOVE), lambda.start=0)
+#gamfull <- coef(fullhte)[2:(ncol(lpxu)+1),]
 gamfull <- drop(oxhte%*%coef(fullhte)[2:(ncol(d)+1),])
 
 pdf("smallbeer-full.pdf", width=4, height=4)
@@ -75,10 +77,10 @@ dev.off()
 
 # mle with all upcs
 mlehte <- gamlr(x=cBind(d,controls)[ss,], y=log(wber$MOVE)[ss], lambda.start=0)
-gammle <- drop(oxhte%*%coef(fullhte)[2:(ncol(d)+1),])
+gammle <- drop(oxhte%*%coef(mlehte)[2:(ncol(d)+1),])
 pdf("smallbeer-mle.pdf", width=4, height=4)
 par(mai=c(.9,.9,.1,.1))
-hist(gammle, main="", xlab="elasticity", col="pink", ylim= freq=FALSE)
+hist(gammle, main="", xlab="elasticity", breaks=200, col="pink", xlim=c(-60,25), freq=FALSE)
 dev.off()
 sort(gammle)[1:4]
 
@@ -100,13 +102,20 @@ par(mai=c(.9,.9,.1,.1))
 hist(gamdml, main="", xlab="elasticity", col="lightblue", freq=FALSE)
 dev.off()
 
-ylim <- c(-10,2)
-pdf("smallbeer-compare.pdf", width=8, height=3)
+ylim <- c(-8,1)
+pdf("smallbeer-compare.pdf", width=8, height=2.5)
 par(mai=c(.7,.7,.1,.1), mfrow=c(1,3))
-plot(gamfull, gammle, pch=21, bg="pink", xlab="fulldata MLE", ylab="subsample MLE", bty="n", ylim=c(-60,60))
-text(x=-1,y=15, sprintf("R2 = %.02f",summary(lm(gamfull~gammle))$r.squared))
+plot(gamfull, gammle, pch=21, bg="pink", xlab="fulldata MLE", ylab="subsample MLE", bty="n", ylim=ylim)
+text(x=-6,y=1, sprintf("R2 = %.02f",summary(lm(gamfull~gammle))$r.squared))
 plot(gamfull, gamnaive, pch=21, bg="lightyellow", xlab="fulldata MLE", ylab="subsample Naive ML", bty="n", ylim=ylim)
-text(x=-1,y=15, sprintf("R2 = %.02f",summary(lm(gamfull~gamnaive))$r.squared))
+text(x=-6,y=1, sprintf("R2 = %.02f",summary(lm(gamfull~gamnaive))$r.squared))
 plot(gamfull, gamdml, pch=21, bg="lightblue", xlab="fulldata MLE", ylab="subsample Double ML", bty="n", ylim=ylim)
-text(x=-1,y=15, sprintf("R2 = %.02f",summary(lm(gamfull~gamdml))$r.squared))
+text(x=-6,y=1, sprintf("R2 = %.02f",summary(lm(gamfull~gamdml))$r.squared))
 dev.off()
+
+B <- coef(dmlhte)[-(1:2),]
+B <- B[B!=0]
+head(sort(round(B,2)))
+head(sort(round(B,2), decreasing=TRUE))
+
+upc[which(gamfull>0),]
