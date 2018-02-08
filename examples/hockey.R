@@ -203,10 +203,81 @@ abline(a=0,b=1,col=8) # y=x line
 # above the line means PM under-rates your performance
 # below the line means you are over-rated (by PM)
 
-######  SAMPLE SPLITTING
+###### UQ for lasso
+
+nhlreg <- gamlr(x, y, verb=TRUE,
+	free=1:(ncol(config)+ncol(team)), ## free denotes unpenalized columns
+	family="binomial", standardize=FALSE)
+Bhat <- coef(nhlreg)
+
+## parametric bootstrap
+nhlreg$lambda[61]/nhlreg$lambda[which.min(AICc(nhlreg))]
+Qlowpen <- drop(predict(nhlreg, x, select=61, type="response"))
+
+Bparboot <- sparseMatrix(dims=c(nrow(Bhat),0),i={},j={})
+B <- 100
+for(b in 1:B){
+  yb <- rbinom(nrow(x), Qlowpen, size=1)
+  fitb <- gamlr(x, yb, 
+	free=1:(ncol(config)+ncol(team)), 
+	family="binomial", standardize=FALSE)
+  Bparboot <- cbind(Bparboot, coef(fitb))
+  print(b)
+}
+
+# try other players too
+WHO <- "SIDNEY_CROSBY"
+fB <- exp(Bhat[WHO,])
+tval <- quantile(exp(Bparboot[WHO,]), c(.95,.05))
+2*fB - tval
+
+# home ice advantage
+fB <- exp(Bhat[1,])
+tval <- quantile(exp(Bparboot[1,]), c(.95,.05))
+2*fB - tval
+
+## subsampling
+B <- 5
+subid <- rep(1:B, ceiling(n/B))[sample.int(n)]
+m <- table(subid)
+head(m)
+
+n <- nrow(x)
+B <- 100
+( m <- round(n/4) )
+Esubs <- sparseMatrix(dims=c(nrow(Bhat),0),i={},j={})
+for(b in 1:B){
+	subs <- sample.int(n, m)
+	fitb <- gamlr(x[subs,], y[subs], 
+		free=1:(ncol(config)+ncol(team)), 
+		family="binomial", standardize=FALSE)
+	print(log(fitb$lambda[which.min(AICc(fitb))]))
+	plot(fitb)
+	eb <- (exp(coef(fitb)) - exp(Bhat))
+	Esubs <- cBind(Esubs,  eb)
+	print(b)
+}
+
+WHO <- "SIDNEY_CROSBY"
+thetahat <- exp(Bhat[WHO,])
+tval <- quantile(Esubs[WHO,], c(.95,.05))
+thetahat - tval*sqrt(m)/sqrt(n) 
+
+pdf("crosbysubs.pdf", width=4, height=4)
+par(mai=c(.9,.9,.1,.1))
+hist(Esubs[WHO,],col=8, main="",  xlab="e_b: subsampled errors for Crosby effect")
+dev.off()
+
+# home ice advantage
+thetahat <- exp(Bhat[1,])
+tval <- quantile(Esubs[1,], c(.95,.05))
+thetahat - tval*sqrt(m)/sqrt(n) 
+
+## SAMPLE SPLITTING
 fold <- sample.int(2,nrow(x),replace=TRUE)
 nhlprereg <- gamlr(x[fold==1,], y[fold==1],
- family="binomial", standardize=FALSE)
+	free=1:(ncol(config)+ncol(team)), 
+	family="binomial", standardize=FALSE)
 
 # the -1 to remove the intercept
 selected <- which(coef(nhlprereg)[-1,] != 0)
@@ -216,11 +287,15 @@ nhlmle <- glm( y ~ ., data=xnotzero,
 
 x[1,x[1,]!=0]
 predict(nhlmle, xnotzero[1,,drop=FALSE], type="response", se.fit=TRUE)
+library(AER)
+Vnhl <- vcovHC(nhlmle)
+
+
 
 ######  CAUSAL INFERENCE
 
 WHO <- "SIDNEY_CROSBY"
-exp(coef(nhlreg)[WHO,])
+exp(Bhat[WHO,])
 who <- grep(WHO,colnames(x))
 
 # propensity adjustment
