@@ -51,8 +51,9 @@ P <- P[nomiss,]
 weights <- Y[,1]
 Y <- Y[,-1]
 
-# drop categorical income from X 
-X <- X[,-10]
+# replace some ridiculous values in survey and drop num19
+X$hhsize_12m[X$hhsize_12m>10] <- 10
+X$num19_12m <- NULL
 
 # organize to make it pretty for text
 P$doc_any_12m <- Y$doc_any_12m # you can explore other responses if you want
@@ -103,7 +104,7 @@ table(P[,c("selected","numhh")])
 # original paper also controls for dt returned, 
 # but it has no practical effect
 lin <- glm(doc_any_12m ~ selected + numhh, data=P)
-summary(lin) # 6-7% increase in prob
+round( summary(lin)$coef["selected",],4) # 6-7% increase in prob
 
 x <- scale( model.matrix( ~ numhh, data=P)[,-1], scale=FALSE)
 colMeans(x)
@@ -156,8 +157,7 @@ bslgt <- boot(names(hhwho), bootfit_lgt, 99)
 sd(bslgt$t)
 quantile(bslgt$t, c(.05,.95))
 
-########################################
-# two stage least squares
+## two stage least squares (Instrumental Variables)
 stage1 <- lm( medicaid ~ selected + numhh, data=P)
 phat <- predict(stage1, newdata=P)
 stage2 <- lm( doc_any_12m ~ phat + numhh, data=P, x=TRUE)
@@ -186,7 +186,7 @@ segam
 
 sqrt(vcovCL(aeriv, cluster = P$household_id)[2,2])
 
-## heterogeneity
+## heterogeneity via causal trees (Nonparametric chapter)
 install.packages("devtools")
 library(devtools) 
 install_github("susanathey/causalTree")
@@ -199,9 +199,53 @@ ybar <- tapply(P$doc_any_12m, P$selected, mean)
 ybar['1'] - ybar['0']
 
 # remove the hhinc_cat variable to get a nicer looking tree
-ct <- causalTree( P$doc_any_12m ~ ., data=X, 
+ct <- causalTree( P$doc_any_12m ~ ., data=X[,-10], 
 	treatment=P$selected,  weights=1/propensity, minsize=2000,
 	split.Rule = "CT", cv.option="CT", split.Honest=TRUE)
-pdf("../book/graphics/causalTree.pdf", width=7, height=4)
 rpart.plot(ct)
-dev.off()
+
+### linear HTE estimation (Controls chapter)
+library(gamlr)
+source("naref.R")
+
+## dealing with missingness
+# make NA the reference level for all categories
+X <- naref(X)
+
+# pull out the numeric variables 
+xnum <- X[,sapply(X,class)%in%c("numeric","integer")]
+xnum[66:70,]
+colSums(is.na(xnum))
+# flag missing
+xnumna <- apply(is.na(xnum), 2, as.numeric)
+xnumna[66:70,]
+# impute the missing values
+mzimpute <- function(v){ 
+	if(mean(v==0,na.rm=TRUE) > 0.5) impt <- 0
+	else impt <- mean(v, na.rm=TRUE)
+	v[is.na(v)] <- impt
+	return(v) }
+xnum <- apply(xnum, 2,  mzimpute)
+xnum[66:70,]
+
+# replace/add the variables in new data frame 
+for(v in colnames(xnum)){
+	X[,v] <- xnum[,v]
+	X[,paste(v,"NA", sep=".")] <- xnumna[,v] }
+X[144:147,]
+
+xhte <- sparse.model.matrix(~., data=cbind(numhh=P$numhh, X))[,-1]
+xhte[1:2,1:4]
+dim(xhte)
+
+
+dxhte <- P$selected*xhte
+colnames(dxhte) <- paste("d",colnames(xhte), sep=".")
+htedesign <- cBind(xhte,d=P$selected,dxhte)
+# include the numhh controls and baseline treatment without penalty 
+htefit <- gamlr(x=htedesign, y=P$doc_any_12m, free=c("numhh2","numhh3+","d"))
+gam <- coef(htefit)[-(1:(ncol(xhte)+1)), ]
+round(sort(gam)[1:6],4)
+round(sort(gam, decreasing=TRUE)[1:6],4)
+
+gam["d"] + colMeans(xhte)%*%gam[grep("d.", names(gam))]

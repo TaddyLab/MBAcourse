@@ -78,14 +78,6 @@ upc$SIZE <- upc$COM_CODE <- NULL
 wber <- wber[ wber$UPC%in%rownames(upc) ]
 wber[,UPC:=as.character(UPC)]
 wber[,STORE:=as.character(STORE)]
-
-# parse the item description text, bag o' words
-library(tm)
-descr <- Corpus(VectorSource(as.character(upc$DESCRIP)))
-descr <- DocumentTermMatrix(descr)
-descr <- sparseMatrix(i=descr$i,j=descr$j,x=as.numeric(descr$v>0), # convert from stm to Matrix format
-              dims=dim(descr),dimnames=list(rownames(upc),colnames(descr)))
-
 wber <- as.data.frame(wber)
 
-save(wber, upc, descr, demo, file="dominicks-beer.rda")
+save(wber, upc, demo, file="dominicks-beer.rda")
