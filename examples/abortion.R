@@ -52,12 +52,12 @@ cellrate <- 5*cell[,2]/(1000*cell[,3])
 ## what if we're just fitting a quadratic trend?
 ## there are many things that increased with similar shapes over time
 ## (cellphone usage, yoga revenues, home prices, ...)
-#pdf(file="../book/graphics/cellphone_abortions.pdf", width=7, height=3)
+
 par(mai=c(.9,.9,.1,.1))
 plot(1985:1997, tapply(d, t, mean), bty="n", xlab="year", ylab="rate", pch=21, bg=2)
 points(1985:1997, cellrate, bg=4, pch=21)
 legend("topleft", fill=c(2,4), legend=c("abortions","cellphones"), bty="n")
-#dev.off()
+
 
 phone <- cellrate[t+1]
 ## clearly, cellphones fight crime.
@@ -97,11 +97,9 @@ treat <- cv.gamlr(x,d, lmr=1e-3)
 dhat <- drop( predict(treat, x, select="min") )
 
 ## not much signal in d not predicted by dhat
-#pdf("../book/graphics/freakfit.pdf", width=4, height=4)
 par(mai=c(.9,.9,.1,.1))
 plot(dhat,d,bty="n",pch=21,bg=8, cex=.8, yaxt="n")
 axis(2, at=c(0,1,2,3)) 
-#dev.off()
 ## that means we have little to resemble an experiment here...
 
 ## IS R^2?

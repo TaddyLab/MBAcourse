@@ -18,4 +18,3 @@ lines(qgrid, dbeta(qgrid,a,b), col=lcols[k], lwd=1)
 }
 legend("topright", bty="n", title="sample size", 
 	legend=c(0,n*lg), col=c(8,lcols[lg]), lwd=1)
-dev.off()

@@ -11,7 +11,6 @@ plot(xfood[,"RedMeat"], xfood[,"WhiteMeat"], xlim=c(-2,2.75),
     type="n", xlab="Red Meat", ylab="White Meat", bty="n")
 text(xfood[,"RedMeat"], xfood[,"WhiteMeat"], labels=rownames(food), 
     col=rainbow(3)[grpMeat$cluster])
-dev.off()
 
 ## same plot, but now with clustering on all protein groups
 grpProtein <- kmeans(xfood, centers=7, nstart=50) ## change the number of centers to see what happens.

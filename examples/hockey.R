@@ -263,10 +263,9 @@ thetahat <- exp(Bhat[WHO,])
 tval <- quantile(Esubs[WHO,], c(.95,.05))
 thetahat - tval*sqrt(m)/sqrt(n) 
 
-pdf("crosbysubs.pdf", width=4, height=4)
+# crosby errors
 par(mai=c(.9,.9,.1,.1))
 hist(Esubs[WHO,],col=8, main="",  xlab="e_b: subsampled errors for Crosby effect")
-dev.off()
 
 # home ice advantage
 thetahat <- exp(Bhat[1,])
