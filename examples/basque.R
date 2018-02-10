@@ -2,6 +2,7 @@ library(Synth)
 library(tidyr)
 data(basque)
 
+## synthetic controls analysis
 y <- basque[,1:4] %>% spread(year, gdpcap)
 rownames(y) <- y$regionname
 y <- y[c(17,2:16,18), -(1:2)]
@@ -17,8 +18,10 @@ synthc <- function(j, tyear=1968, ...){
 	return(list(w=coef(fit)[,1], y0hat=y0hat ) )
 }
 
+# run the synthetic controls
 sc <- synthc(1, lmr=1e-4)
 sc$w
+
 # permutation test
 library(parallel)
 cl <- makeCluster(detectCores())
@@ -28,11 +31,8 @@ gety0 <- function(j){ synthc(j, lmr=1e-4)$y0hat }
 Ysynth <- parSapply(cl, 1:nrow(y), gety0)
 diff <- Ysynth - t(y)
 
-
-
+# produce the plots
 year <- as.numeric(colnames(y))
-pdf("../book/graphics/basque.pdf", width=7, height=3.25)
-par(mfrow=c(1,2), mai=c(.9,.9,.1,.1))
 plot(year, sc$y0hat, type="l", ylab="gdp per capita",
 	col=rgb(.1,.5,1,0.8), ylim=range(c(y[1,],sc$y0hat)), bty="n", lwd=2)
 abline(v=1968, col=8, lty=2)
@@ -48,4 +48,3 @@ lines(year, diff[,14], lwd=1.5, lty=2, col=1)
 legend("topleft", bty="n", 
 	legend=c("basque", "placebo", "(madrid)"), 
 	lty=c(1,1,2), lwd=2, col=c(2,8,1))
-dev.off()

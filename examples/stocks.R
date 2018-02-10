@@ -27,7 +27,7 @@ RET <- RET %>% select(-MPET)
 tbills <- read.csv("tbills.csv")
 tbills$date <- as.Date(tbills$date)
 
-# pdf(file="../book/graphics/fancyret.pdf", width=7, height=4)
+
 par(mai=c(.6,.8,.1,.1))
 matplot(RET[,1], RET[,-1], xlab="", ylab="Return", bty="n",
 	type="l", col=heat.colors(24), lty=2, xaxt="n", yaxt="n")
@@ -37,7 +37,7 @@ lines(tbills, lwd=2, col=8)
 lines(SNP, lwd=2)
 
 legend("top", lwd=2, legend="S&P500", bty="n")
-# dev.off()
+
 
 
 ####################################################
@@ -49,10 +49,10 @@ capm <- lm( exr ~ mkt)
 (ab <- t(coef(capm))[,2:1])
 
 ab <- ab[-9,]
-pdf(file="../book/graphics/usefulret.pdf", width=7, height=4)
+
 par(mai=c(.8,.8,0,0), xpd=FALSE)
 plot(ab, type="n", bty="n", xlab="beta", ylab="alpha")
 abline(v=1, lty=2, col=8)
 abline(h=0, lty=2, col=8)
 text(ab, labels=rownames(ab), cex=bigs[,2]/350, col="navy") 
-dev.off()
+

@@ -40,8 +40,8 @@ readerPDF <- function(fname){
 ## for the following to work, in your working directory
 ## you'll need to point to wherever you've stored the lectures
 
-## apply to all the lectures
-files <- Sys.glob("/Users/taddy/project/BigData/slides/*.pdf") 
+## apply to all the lectures (assuming you are running from MBAmaterials/examples)
+files <- Sys.glob("../lectures/*.pdf") 
 # Sys.glob just expands file names from 'wildcards'
 ## takes time!  this would be easy to do 
 ## distributed via clusterApply or MapReduce
@@ -147,6 +147,15 @@ f <- congress109Counts#t( t(congress109Counts)/rowSums(congress109Counts) )
 y <- congress109Ideology$repshare
 slant <- pls(f, y, K=3)
 
+# pictures
+for(k in 1:3)
+	plot(slant$y, slant$fitted[,k], ylim=c(-.05,.85), xlab="", ylab="",
+	 main=sprintf("PLS(%d)", k), 
+   		pch=20, col=c(4,3,2)[congress109Ideology$party], bty="n")
+mtext(side=1, "repshare", outer=TRUE, line=-1.25)
+mtext(side=2, "fitted", outer=TRUE, line=-1.25)
+
+# OOS experiment
 foldid <- sample.int(5, nrow(f), replace=TRUE)
 OOS <- matrix(nrow=5, ncol=10)
 for(b in 1:5){
@@ -163,41 +172,27 @@ cvs <- apply(OOS,2,sd)
 OOS <- as.data.frame(OOS)
 names(OOS) <- 1:10
 
+# lasso instead of PLS
 lassoslant <- cv.gamlr(congress109Counts>0, y)
 B <- coef(lassoslant$gamlr)[-1,]
 sort(round(B[B!=0],4))
 
-pdf("../book/graphics/slantselect.pdf", width=7, height=3.5)
-par(mfrow=c(1,2), mai=c(.9,.8,.6,.1))
+# compare
 boxplot(OOS, ylab="mean squared error", xlab="K", col="red", log="y", main="", 
 	ylim=c(0.01,2))
 mtext(side=3, "PLS", line=2)
 plot(lassoslant, log="y", main="", ylim=c(0.01,2)) 
 mtext(side=3, "lasso", line=2)
-dev.off()
 
-pdf("../book/graphics/slantpls.pdf", width=8, height=2.75)
-par(mai=c(.6,.6,.2,0.1), mfrow=c(1,3))
-for(k in 1:3)
-	plot(slant$y, slant$fitted[,k], ylim=c(-.05,.85), xlab="", ylab="",
-	 main=sprintf("PLS(%d)", k), 
-   		pch=20, col=c(4,3,2)[congress109Ideology$party], bty="n")
-mtext(side=1, "repshare", outer=TRUE, line=-1.25)
-mtext(side=2, "fitted", outer=TRUE, line=-1.25)
-dev.off()
-
-## we8there
-
+#### we8there
 library(textir)
 data(we8there)
 x <- we8thereCounts
-pca <- prcomp(x, scale=TRUE)
+pca <- prcomp(x, scale=TRUE) # can take a long time
 v <- predict(pca)[,1:4]
 
-pdf("../book/graphics/we8therePC1.pdf", width=3.5, height=3.5)
 par(mai=c(.8,.8,.1,.1))
 boxplot(v[,1] ~ we8thereRatings$Overall, xlab="overall rating", ylab="PC1 score")
-dev.off()
 
 library(maptpx) # for the topics function
 
@@ -229,11 +224,8 @@ summary(tpcs, n=10)
 rownames(tpcs$theta)[order(tpcs$theta[,1], decreasing=TRUE)[1:10]]
 rownames(tpcs$theta)[order(tpcs$theta[,2], decreasing=TRUE)[1:10]]
 
-pdf("../book/graphics/we8thereOMEGA.pdf", width=7, height=3.5)
-par(mai=c(.8,.8,.1,.1), mfrow=c(1,2))
 boxplot(tpcs$omega[,1] ~ we8thereRatings$Overall, col="gold", xlab="overall rating", ylab="topic 1 score")
 boxplot(tpcs$omega[,2] ~ we8thereRatings$Overall, col="pink", xlab="overall rating", ylab="topic 2 score")
-dev.off()
 
 ## interpret the relationship between topics and overall rating
 library(gamlr)
@@ -249,7 +241,6 @@ regtopics.cv <- cv.gamlr(tpcs$omega, stars, lmr=1e-3)
 regwords.cv <- cv.gamlr(we8thereCounts, stars)
 
 
-pdf("../book/graphics/we8thereCV.pdf", width=6, height=3)
 par(mfrow=c(1,2), mai=c(.3,.6,.7,.1), omi=c(.5,.2,0,0))
 plot(regtopics.cv, ylim=c(1,2), xlab="", ylab="")
 mtext("topic regression", font=2, line=2)
@@ -257,7 +248,6 @@ plot(regwords.cv, ylim=c(1,2), xlab="", ylab="")
 mtext("token regression", font=2, line=2)
 mtext(side=2, "mean squared error", outer=TRUE, line=0)
 mtext(side=1, "log lamba", outer=TRUE, line=1)
-dev.off()
 
 
 
@@ -271,19 +261,17 @@ max(1-regwords.cv$cvm/regwords.cv$cvm[1])
 ## cl=NULL instead implies a serial run. 
 cl <- makeCluster(detectCores())
 ## small nlambda for a fast example
-fits <- mnlm(cl, we8thereRatings, 
+fits <- dmr(cl, we8thereRatings, 
 			we8thereCounts, bins=5,nlambda=10, lmr=1e-3)
-#stopCluster(cl) # usually a good idea
+stopCluster(cl) # usually a good idea
 
 ## plot fits for a few individual terms
 terms <- c("first date","chicken wing",
 			"ate here", "good food",
 			"food fabul","terribl servic")
-pdf("../book/graphics/we8therePATHS.pdf", width=9, height=6)
 par(mfrow=c(2,3))
 for(j in terms)
 { 	plot(fits[[j]]); mtext(j,font=2,line=2) }
-dev.off()
  
 ## extract coefficients
 B <- coef(fits)

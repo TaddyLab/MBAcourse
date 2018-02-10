@@ -16,7 +16,6 @@ preg <- lm(pobs ~ z)
 phat <- predict(preg, data.frame(z=z))
 lin2SLS <- lm(yobs ~ phat)
 
-pdf("../book/graphics/endogeneity.pdf", width=7.75, height=3)
 par(mfrow=c(1,2), mai=c(.8,.8,.5,.1))
 plot(pobs, yobs, xlim=c(0,6), ylim=c(0,29), pch=21, bg=8,
 	xlab="", ylab="", 
@@ -31,4 +30,3 @@ plot(pind, yind, xlim=c(0,6), ylim=c(0,29), pch=21, bg=8,
 abline(lm(yind ~ pind), col="orange", lwd=2)
 mtext(side=1, "price", outer=TRUE, line=-1)
 mtext(side=2, "sales", outer=TRUE, line=-1)
-dev.off()

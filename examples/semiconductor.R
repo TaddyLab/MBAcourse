@@ -83,10 +83,9 @@ for(k in 1:K){
 	cat(k, " ")
 }
 ## plot it in plum
-pdf("../book/graphics/SCr2.pdf", width=4.5, height=4)
 par(mai=c(.9,.9,.1,.1))
 boxplot(OOS, col="plum", ylab="R2", xlab="model", bty="n")
-dev.off()
+
 ## what are the average OOS R2?
 colMeans(OOS) # WOW!  Full model really sucks.
 

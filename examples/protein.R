@@ -17,13 +17,13 @@ dev.off()
 grpProtein <- kmeans(xfood, centers=7, nstart=50) ## change the number of centers to see what happens.
 grpProtein
 
-pdf("../book/graphics/FOODprotein.pdf", width=7, height=3.5)
+
 par(mai=c(.9,.9,.1,.1))
 plot(xfood[,"RedMeat"], xfood[,"WhiteMeat"], xlim=c(-2,2.75), 
     type="n", xlab="Red Meat", ylab="White Meat", bty="n")
 text(xfood[,"RedMeat"], xfood[,"WhiteMeat"], labels=rownames(food), 
     col=rainbow(7)[grpProtein$cluster]) ## col is all that differs from first plot
-dev.off()
+
 
 
 plot(xfood[,"RedMeat"], xfood[,"Fish"], xlim=c(-2,2.75), 

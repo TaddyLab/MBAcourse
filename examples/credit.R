@@ -17,10 +17,8 @@ credit <- credit[,c("Default", "duration", "amount",
                     "purpose", "foreign", "rent")]
 
 ## plot a mosaic
-pdf("../book/graphics/CREDmosaic.pdf", width=3.5, height=3.5)
 par(mai=c(.8,.8,.1,.1))
 plot(factor(Default) ~ history, data=credit, col=c(8,2), ylab="Default") ## surprise!
-dev.off()
 ## the dangers of choice-based sampling!  
 
 ## build a design matrix 
@@ -70,7 +68,6 @@ defaultoos <- default[test]
 ## roc curve and fitted distributions
 source("roc.R")
 
-pdf("../book/graphics/credROC.pdf", width=8, height=4)
 par(mai=c(.9,.9,.2,.1), mfrow=c(1,2))
 roc(p=pred, y=default, bty="n", main="in-sample")
 ## our 1/5 rule cutoff
@@ -93,7 +90,6 @@ points(x= 1-mean((predoos<.2)[defaultoos==0]),
 points(x= 1-mean((predoos<.5)[defaultoos==0]), 
 	y=mean((predoos>.5)[defaultoos==1]), 
 	cex=1.5, pch=20, col='blue') 
-dev.off()
 
 
 

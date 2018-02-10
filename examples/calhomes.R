@@ -127,10 +127,8 @@ for(i in 1:10){
  
   cat(i)
 } 
-pdf("../book/graphics/calhomesMSE.pdf", width=3.5, height=3.5)
 par(mai=c(.8,.8,.1,.1))
 boxplot(log(as.data.frame(MSE)), col="dodgerblue", xlab="model", ylab="log(MSE)")
-dev.off()
 
 
 ## parallel processing

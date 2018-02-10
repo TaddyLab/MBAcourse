@@ -1,12 +1,12 @@
 
 D <- read.csv("RD.csv")
-# pdf("../book/graphics/RDforcing.pdf", width=3.5, height=3.5)
+
 par(mai=c(.8,.8,.3,.3))
 boxplot(score ~ treat, data=D, horizontal=TRUE, 
 	xlab="rank score minus reserve",
  	ylab="treatment (Ad in Main)")
 abline(v=0, col=8, lty=3)
-# dev.off()
+
 
 
 # a neighborhood
@@ -46,7 +46,7 @@ library(AER)
 seate <- sqrt(vcovHC(linfit)["treat","treat"])
 ate + c(-2,2)*seate
 
-pdf(file="../book/graphics/RDanalysis.pdf", width=8, height=4)
+
 par(mfrow=c(1,2), omi=c(.5,0,0,0), mai=c(.3,.9,.4,.2))
 plot(y ~ score, data=D, subset=sample(c(above,below),10000), 
 		cex=.3, col=8, bty="n", xlab="", main="data sample")
@@ -62,7 +62,7 @@ lines(dgrid$score[1:nr], rep(mub,nr), lwd=1.5, lty=2, col=2)
 lines(dgrid$score[nr+1:nr], rep(mua,nr), lwd=1.5, lty=2, col=2)
 lines(c(0,0),coef(linfit)[1] + c(0,coef(linfit)[2]), lwd=1.5, col=2, lty=3)
 mtext(side=1, "rank score", outer=TRUE, line=1)
-dev.off()
+
 
 
 hh <- seq(.1,5,length=50)
@@ -78,11 +78,11 @@ for(i in 1:length(hh)){
 up <- ateh+2*seah
 down <- ateh-2*seah
 
-pdf("../book/graphics/RDbandwidth.pdf", width=3.5, height=4)
+
 par(mai=c(.8,.8,.3,.3))
 
 plot(hh, ateh, type="l", ylim=range(c(up,down)), 
 	xlab="window size", ylab="ATE estimate", bty="n")
 polygon(c(hh,rev(hh)), c(up,rev(down)), col=8, border=FALSE)
 lines(hh, ateh, col="blue", lwd=2)
-dev.off()
+

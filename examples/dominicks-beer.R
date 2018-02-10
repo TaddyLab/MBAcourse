@@ -102,7 +102,6 @@ range( gamdml <- drop(eachbeer%*%coef(dmlhte)[-1,]) )
 hist(gamdml, main="", xlab="elasticity", col="lightblue", freq=FALSE)
 
 ylim <- c(-8,1)
-pdf("smallbeer-compare.pdf", width=8, height=2.5)
 par(mai=c(.7,.7,.1,.1), mfrow=c(1,3))
 plot(gamfull, gammle, pch=21, bg="pink", xlab="fulldata MLE", ylab="subsample MLE", bty="n", ylim=ylim)
 text(x=-6,y=1, sprintf("R2 = %.02f",summary(lm(gamfull~gammle))$r.squared))
@@ -110,7 +109,6 @@ plot(gamfull, gamnaive, pch=21, bg="lightyellow", xlab="fulldata MLE", ylab="sub
 text(x=-6,y=1, sprintf("R2 = %.02f",summary(lm(gamfull~gamnaive))$r.squared))
 plot(gamfull, gamdml, pch=21, bg="lightblue", xlab="fulldata MLE", ylab="subsample Orthogonal ML", bty="n", ylim=ylim)
 text(x=-6,y=1, sprintf("R2 = %.02f",summary(lm(gamfull~gamdml))$r.squared))
-dev.off()
 
 B <- coef(dmlhte)[-(1:2),]
 B <- B[B!=0]

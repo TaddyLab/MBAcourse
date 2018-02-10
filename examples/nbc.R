@@ -38,7 +38,6 @@ round(PCApilot$rotation[,1:3],1)
 zpilot <- predict(PCApilot)
 
 ## look at a plot of them
-pdf("../book/graphics/NBCpilotavgPCs.pdf", width=7, height=4.5)
 par(mai=c(.8,.8,0,.1))
 plot(zpilot[,1:2], col=0, bty="n", # col=0 to get an empy plot
    ylim=c(-3,3), xlim=c(-6,6), # hides "monarch cove",living with ed", and "next" but these are all tiny 
@@ -46,7 +45,6 @@ plot(zpilot[,1:2], col=0, bty="n", # col=0 to get an empy plot
 text(zpilot[,1:2], labels=rownames(zpilot), 
     col=c("navy","red","green")[shows$Genre], # color by genre
     cex=shows$PE/mean(shows$PE)) # size by show
-dev.off()
 
 ### Principal components regression
 library(gamlr) # to get AICc, plus we'll do lasso below
@@ -77,12 +75,10 @@ coef(cvlassoPCR)
 
 ## plot 'em
 
-pdf("../book/graphics/NBCpcselect.pdf", width=8, height=4)
 par(mfrow=c(1,2))
 plot(aicc, pch=21, bg="maroon", xlab="K", ylab="AICc")
 plot(lassoPCR, col=0, ylim=c(160,215), ylab="AICc")
 points(log(lassoPCR$lambda), AICc(lassoPCR), pch=21, bg="navy")
-dev.off()
 
 ## compare to an un-factorized lasso
 cvlasso <- cv.gamlr(x=as.matrix(Xpilot), y=PE, nfold=20)
@@ -91,16 +87,14 @@ cvlassoboth <- cv.gamlr(x=as.matrix(cbind(Xpilot,zpilot)), y=PE, nfold=20)
 ## since you haven't simplified into linear factors 
 ## the estimation variance overwhelms any signal
 
-pdf("../book/graphics/NBCthreereg.pdf", width=7, height=3)
 par(mfrow=c(1,3), mai=c(.2,.2,.5,.1), omi=c(.5,.5,0,0))
 plot(cvlasso, main="Lasso on X", ylim=c(50,200), ylab="", xlab="", df=FALSE, bty="n")
 plot(cvlassoPCR, main="Lasso on V (PCR)", ylim=c(50,200), ylab="", xlab="", df=FALSE, bty="n")
 plot(cvlassoboth, main="Lasso on X and V", ylim=c(50,200), ylab="", xlab="", df=FALSE, bty="n")
 mtext(side=2, "mean squared error", outer=TRUE, line=2)
 mtext(side=1, "log lamba", outer=TRUE, line=2)
-dev.off()
 
-#### WEEK 9 TREES STUFF
+#### TREES STUFF
 
 library(gamlr)
 

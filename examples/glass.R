@@ -36,10 +36,6 @@ library(glmnet)
 ## You could also look at all interactions; you get diff model but similar performance OOS
 xfgl <- sparse.model.matrix(type~.*RI, data=fgl)[,-1]
 gtype <- fgl$type
-pdf("../book/graphics/fglCV.pdf", width=3.5,height=3.5)
-par(mai=c(.9,.9,.1,.1))
-plot(glassfit)
-dev.off()
 
 glassfit <- cv.glmnet(xfgl, gtype, family="multinomial")
 plot(glassfit) # CV error; across top avg # nonzero across classes
@@ -65,6 +61,7 @@ probfgl <- drop(probfgl)
 # note use of a matrix to index a matrix! 
 # gives back the [i,j] entry of probfgl for each row of index matrix 
 # so, here, that's the probability of true class for each observation
+n <- nrow(xfgl)
 trueclassprobs <- probfgl[cbind(1:n, gtype)] 
 ## plot true probs, with varwidth to have the box widths proportional to response proportion.
 plot(trueclassprobs ~ gtype, col="lavender", varwidth=TRUE,

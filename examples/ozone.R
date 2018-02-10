@@ -8,11 +8,9 @@ round(bvar,1)
 
 sqrt(bvar["Wind","Wind"])
 
-pdf("../book/graphics/ozoneresid.pdf", width=3.5, height=3.5)
 par(mai=c(.9,.9,.2,.1))
 plot(na.omit(airquality)$Wind, fit$residuals, pch=20, bg=8, bty="n",
 	xlab="Wind", ylab="OLS residuals")
-dev.off()
 
 B <- 10000
 beta <- vector(length=B)
@@ -24,7 +22,6 @@ for(b in 1:B){
 sd(beta)
 
 coef <- summary(fit)$coef["Wind",1:2]
-pdf("../book/graphics/ozoneboot.pdf", width=3.5, height=3.5)
 par(mai=c(.9,.9,.1,.1))
 hist(beta, col=8, main="", 
   xlab="Coefficient for Ozone on Wind", 
@@ -36,4 +33,3 @@ legend("topleft",col=c(8,4,2),lwd=4,
   legend=c("Bootstrap",
            "HC",
            "Vanilla"),bty="n")
-dev.off()
