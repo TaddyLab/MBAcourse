@@ -1,3 +1,3 @@
 # MBA materials
 
-Examples and lectures for Modern Business Analytics.  Everything copyright Matt Taddy 2017.
+Examples and lectures for the Big Data course at Chicago Booth

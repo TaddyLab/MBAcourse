@@ -45,7 +45,7 @@ legend("topright", fill=1:3, legend=levels(trucks$make))
 
 ## main effects, regression of log price on miles, year, make
 ## `glm' is generalized linear model; this is your least-squares regression
-fit_maineffects <- glm(log(price) ~ make + miles + price, data=trucks) # ~. means `on everything'
+fit_maineffects <- glm(log(price) ~ make + miles + year, data=trucks) # ~. means `on everything'
 ## summarize the regression model
 summary(fit_maineffects) 
 ## what is the 95% CI for effect of miles on log price?
